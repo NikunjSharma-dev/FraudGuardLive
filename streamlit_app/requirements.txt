@@ -1,0 +1,6 @@
+# cache-bust: 1
+streamlit==1.45.1
+requests==2.32.3
+pandas==2.2.3
+numpy==2.2.4
+plotly==5.22.0

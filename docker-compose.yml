@@ -1,0 +1,57 @@
+services:
+  # 1. Redis Cache (In-memory Feature Store)
+  redis:
+    image: redis:7-alpine
+    container_name: fraud_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # 2. Backend API (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fraud_backend
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      # This line automatically pulls the URL from your .env file
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: "http://localhost:8501,http://streamlit:8501"
+      SECRET_KEY: "change-me-to-something-secure"
+      ENV: "development"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    restart: always
+
+  # 3. Streamlit Dashboard
+  streamlit:
+    build:
+      context: ./streamlit_app
+      dockerfile: Dockerfile
+    container_name: fraud_streamlit
+    depends_on:
+      - backend
+    environment:
+      API_URL: http://backend:8000 
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./streamlit_app:/app
+    restart: always
+
+volumes:
+  redis_data:
