@@ -3,12 +3,30 @@ import os
 import uuid
 from datetime import datetime
 from typing import Optional
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import String, Float, Boolean, DateTime, Text, Numeric, BigInteger
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func, text
+
+def _async_database_url(database_url: str) -> str:
+    """Convert standard PostgreSQL URLs into SQLAlchemy asyncpg URLs."""
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+    # Hosted providers commonly use ``sslmode=require`` in libpq URLs.
+    # asyncpg expects the same setting under the ``ssl`` key.
+    parsed_url = urlsplit(database_url)
+    query = [
+        ("ssl" if key == "sslmode" else key, value)
+        for key, value in parse_qsl(parsed_url.query, keep_blank_values=True)
+    ]
+    return urlunsplit(parsed_url._replace(query=urlencode(query)))
+
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
@@ -21,10 +39,7 @@ if not DATABASE_URL:
 # ``postgresql://`` (or legacy ``postgres://``) form. SQLAlchemy's async
 # engine needs the driver to be explicit, otherwise it selects psycopg2 and
 # fails during application import before the web server can start.
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-elif DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+DATABASE_URL = _async_database_url(DATABASE_URL)
 
 engine = create_async_engine(
     DATABASE_URL,
