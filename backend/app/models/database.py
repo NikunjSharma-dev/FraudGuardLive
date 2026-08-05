@@ -17,6 +17,15 @@ if not DATABASE_URL:
         "Copy .env.example to .env and set it before starting the server."
     )
 
+# Render provides PostgreSQL connection strings in the standard
+# ``postgresql://`` (or legacy ``postgres://``) form. SQLAlchemy's async
+# engine needs the driver to be explicit, otherwise it selects psycopg2 and
+# fails during application import before the web server can start.
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 engine = create_async_engine(
     DATABASE_URL,
     pool_size=20,
