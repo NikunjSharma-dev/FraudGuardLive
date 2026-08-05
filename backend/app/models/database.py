@@ -24,6 +24,7 @@ def _async_database_url(database_url: str) -> str:
     query = [
         ("ssl" if key == "sslmode" else key, value)
         for key, value in parse_qsl(parsed_url.query, keep_blank_values=True)
+        if key != "channel_binding"
     ]
     return urlunsplit(parsed_url._replace(query=urlencode(query)))
 
