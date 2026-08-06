@@ -1,0 +1,12 @@
+[theme]
+# The dashboard is designed dark: #1E1E1E metric cards, white card text and
+# plotly_dark charts. Without this, Streamlit Community Cloud serves the light
+# theme and the page renders dark cards on a white background.
+base = "dark"
+primaryColor = "#00C853"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1E1E1E"
+textColor = "#FAFAFA"
+
+[server]
+headless = true

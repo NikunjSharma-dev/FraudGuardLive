@@ -53,7 +53,7 @@ def _api_points_to_localhost(url: str) -> bool:
 @st.cache_data(ttl=30)
 def _probe_backend_health(url: str) -> tuple[bool, str]:
     try:
-        response = requests.get(f"{url}/health", timeout=2)
+        response = requests.get(f"{url}/health", timeout=60)
         if response.ok:
             return True, response.text
         return False, f"HTTP {response.status_code}"
@@ -106,7 +106,7 @@ if page == "📊 Live Dashboard":
     st.header("Live Ledger")
     
     try:
-        response = requests.get(f"{API_URL}/admin/ledger-summary", timeout=2)
+        response = requests.get(f"{API_URL}/admin/ledger-summary", timeout=30)
         if response.status_code != 200: raise ValueError
         data = response.json()
     except:
@@ -125,7 +125,7 @@ if page == "📊 Live Dashboard":
     with chart_col1:
         st.subheader("Transaction Volume Trend")
         try:
-            trend_resp = requests.get(f"{API_URL}/admin/volume-trend", timeout=2).json()
+            trend_resp = requests.get(f"{API_URL}/admin/volume-trend", timeout=30).json()
             df_trend = pd.DataFrame(trend_resp)
             df_trend["hour"] = pd.to_datetime(df_trend["hour"])
         except:
@@ -142,7 +142,7 @@ if page == "📊 Live Dashboard":
         st.plotly_chart(fig_pie, use_container_width=True)
         
     try:
-        txns_resp = requests.get(f"{API_URL}/admin/transactions?limit=50", timeout=2)
+        txns_resp = requests.get(f"{API_URL}/admin/transactions?limit=50", timeout=30)
         if txns_resp.status_code == 200:
             df_txns = pd.DataFrame(txns_resp.json())
             
@@ -260,7 +260,7 @@ elif page == "💳 Simulate Transaction":
             with tc:
                 st.info("Sending transaction to risk engine...")
                 try:
-                    res = requests.post(f"{API_URL}/transaction/submit", json=payload, timeout=5)
+                    res = requests.post(f"{API_URL}/transaction/submit", json=payload, timeout=60)
                     data = res.json()
                     
                     if res.status_code == 200:
@@ -386,7 +386,7 @@ elif page == "🛠️ Technical Ops":
         # Pull real TRIGGER_DECLINE events from the audit log as a proxy for
         # pipeline errors (hard-rule rejections, limit breaches, etc.)
         try:
-            audit_resp = requests.get(f"{API_URL}/admin/audit-log?limit=200", timeout=2)
+            audit_resp = requests.get(f"{API_URL}/admin/audit-log?limit=200", timeout=30)
             if audit_resp.status_code == 200:
                 audit_rows = audit_resp.json()
                 # Count TRIGGER_DECLINE events per minute slot within the display window
@@ -553,7 +553,7 @@ elif page == "🔐 Admin Portal":
         # 2. Fetch Accounts
         try:
             params = {"search": search_query} if search_query else {}
-            acc_resp = requests.get(f"{API_URL}/admin/accounts", params=params, timeout=2)
+            acc_resp = requests.get(f"{API_URL}/admin/accounts", params=params, timeout=30)
             
             if acc_resp.status_code == 200:
                 accounts_list = acc_resp.json()
