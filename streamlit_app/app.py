@@ -173,6 +173,8 @@ if page == "dashboard":
             fig_line.update_traces(
                 line_color=ACCENT, line_width=2.5,
                 fill="tozeroy", fillcolor="rgba(56,189,248,0.10)",
+                # Markers keep a one- or two-bucket series visible as a point
+                mode="lines+markers", marker=dict(size=6, color=ACCENT),
             )
             fig_line.update_layout(xaxis_title=None, yaxis_title="Volume")
             # An all-zero series otherwise auto-ranges to ±1 with odd tick labels
@@ -180,6 +182,14 @@ if page == "dashboard":
                 fig_line.update_yaxes(range=[0, 1])
             else:
                 fig_line.update_yaxes(rangemode="tozero")
+            # With a single bucket plotly zooms the time axis to microseconds
+            # ("07:59:59.9995"); pad it out to a readable window instead.
+            if len(df_trend) < 3:
+                center = pd.to_datetime(df_trend["hour"]).iloc[0]
+                fig_line.update_xaxes(
+                    range=[center - pd.Timedelta(hours=6), center + pd.Timedelta(hours=6)]
+                )
+            fig_line.update_xaxes(tickformat="%H:%M<br>%b %d")
             style.plot(fig_line, height=320, key="dash_trend")
 
     with chart_col2:
@@ -201,9 +211,19 @@ if page == "dashboard":
                     df_pie, values="Count", names="Status", hole=0.7,
                     color="Status", color_discrete_map=STATUS_COLORS,
                 )
-                fig_pie.update_traces(marker=dict(line=dict(color=style.SURFACE, width=2)))
+                fig_pie.update_traces(
+                    marker=dict(line=dict(color=style.SURFACE, width=2)),
+                    # Keep labels inside the ring: the default draws leader lines
+                    # for every zero-count slice, which collide with the legend.
+                    textinfo="percent",
+                    textposition="inside",
+                    texttemplate="%{percent:.0%}",
+                    insidetextfont=dict(color=style.BG, size=13),
+                    sort=False,
+                    hovertemplate="%{label}: %{value:,} (%{percent:.1%})<extra></extra>",
+                )
                 fig_pie.update_layout(
-                    legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center")
+                    legend=dict(orientation="h", y=-0.12, x=0.5, xanchor="center")
                 )
                 style.plot(fig_pie, height=320, showlegend=True, key="dash_pie")
 
