@@ -1,0 +1,19 @@
+# Base theme for FraudGuard.
+#
+# This file must live at the REPO ROOT: Streamlit reads config from the working
+# directory it is launched from, which on Streamlit Community Cloud is the repo
+# root (the app entrypoint is streamlit_app/app.py). A copy is kept in
+# streamlit_app/.streamlit/ for running locally from inside that folder.
+#
+# Native widgets inherit these tokens automatically; everything the theme block
+# cannot reach (icon sidebar, KPI cards, chart cards) lives in streamlit_app/style.py.
+[theme]
+base = "dark"
+primaryColor = "#38bdf8"              # cyan accent — active nav, focus rings, primary actions
+backgroundColor = "#0d1117"           # near-black page background
+secondaryBackgroundColor = "#161b22"  # card / sidebar surface
+textColor = "#e6edf3"                 # off-white primary text
+font = "sans serif"
+
+[server]
+headless = true

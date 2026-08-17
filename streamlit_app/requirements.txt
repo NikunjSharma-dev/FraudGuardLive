@@ -1,6 +1,14 @@
-# cache-bust: 1
+# cache-bust: 2
 streamlit==1.45.1
 requests==2.32.3
 pandas==2.2.3
-numpy==2.2.4
 plotly==5.22.0
+
+# Required to score the committed model artifacts for the Model Performance page.
+# Versions match backend/requirements.txt — the .pkl files were written by
+# scikit-learn 1.4.2, and unpickling under a different minor version is unsafe.
+# numpy is held at 1.26.x because scikit-learn 1.4.2 predates numpy 2.x support.
+numpy==1.26.4
+scikit-learn==1.4.2
+xgboost==2.0.3
+joblib==1.4.0
