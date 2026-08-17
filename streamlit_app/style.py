@@ -235,6 +235,21 @@ hr {{ border-color: var(--fg-border); }}
 /* Streamlit reserves ~78px of empty header above the sidebar content */
 [data-testid="stSidebarHeader"] {{ height: 0; min-height: 0; padding: 0; }}
 [data-testid="stSidebarUserContent"] {{ padding-top: 14px; }}
+/* Streamlit puts its own 18px page padding on stSidebarUserContent, which left
+   the nav only 21px of the 76px rail to lay out in. The tiles overflowed that
+   near-empty box and the icons were sliced in half by the rail's right edge.
+   Dropping the padding restores the 57px the sidebar body actually occupies;
+   the wrappers below it are shrink-to-fit and have to be told to follow. */
+[data-testid="stSidebarUserContent"] {{
+  padding-left: 0 !important; padding-right: 0 !important;
+}}
+[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
+[data-testid="stSidebar"] [data-testid="stElementContainer"],
+[data-testid="stSidebar"] [data-testid="stRadio"],
+[data-testid="stSidebar"] [data-testid="stRadio"] > div {{
+  width: 100% !important;
+}}
 
 .fg-brand {{
   display: flex; align-items: center; gap: 11px;
@@ -255,10 +270,14 @@ hr {{ border-color: var(--fg-border); }}
 .fg-brand-tag {{ font-size: 0.7rem; color: var(--fg-muted); letter-spacing: .04em; text-transform: uppercase; }}
 
 /* Nav radio → icon tiles */
-[data-testid="stSidebar"] [role="radiogroup"] {{ gap: 4px; padding: 0 12px; }}
+[data-testid="stSidebar"] [role="radiogroup"] {{
+  gap: 4px; padding: 0;
+  width: 100%; box-sizing: border-box;
+}}
 [data-testid="stSidebar"] [role="radiogroup"] > label {{
   display: flex; align-items: center; gap: 12px;
   padding: 0; margin: 0; height: 44px;
+  width: 100%; box-sizing: border-box;
   border-radius: 9px; cursor: pointer;
   border: 1px solid transparent;
   transition: background .14s ease, border-color .14s ease;
@@ -284,8 +303,21 @@ hr {{ border-color: var(--fg-border); }}
   font-size: 0.87rem !important;
 }}
 [data-testid="stSidebar"] [role="radiogroup"] label p::before {{
-  display: inline-block; width: 26px; margin: 0 12px 0 13px;
+  display: inline-block; width: 26px; margin: 0;
   font-size: 1.05rem; text-align: center; vertical-align: middle;
+}}
+/* Let the text block span the whole tile so the icon can be centred by
+   text-align while collapsed — the label text is font-size:0 there, so the
+   icon is the only thing on the line. On hover the icon returns to the left
+   and the label text sits beside it. */
+[data-testid="stSidebar"] [role="radiogroup"] > label > div {{
+  flex: 1 1 auto; min-width: 0;
+  padding: 0 !important;
+}}
+[data-testid="stSidebar"] [role="radiogroup"] label p {{ text-align: center; }}
+[data-testid="stSidebar"]:hover [role="radiogroup"] label p {{ text-align: left; }}
+[data-testid="stSidebar"]:hover [role="radiogroup"] label p::before {{
+  margin: 0 12px 0 13px;
 }}
 
 /* Active item */
